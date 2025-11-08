@@ -11,6 +11,69 @@ You can read detail explanations and code architecture of this template from Dev
 Don't forget to leave a star if you find this helpful ⭐️
 
 
+## 🤖 Automation-First Workflow
+
+This template now assumes an automation-first workflow where OpenAI Codex for Web opens pull requests, GitHub Actions protects `main`, and Cloudflare deploys every successful merge. Use the checklist below to prepare the repository before inviting the Codex agent:
+
+### Launch a ready-to-use Codespace
+
+1. Click **Code → Codespaces → Create codespace on main** (or visit `https://codespaces.new/YOUR_ORG/YOUR_REPO`).
+2. The included [`.devcontainer/devcontainer.json`](.devcontainer/devcontainer.json) boots a Node.js 20 image with pnpm, Wrangler, GitHub CLI, Biome, ESLint, and Tailwind tooling ready to go.
+3. Once the Codespace starts, run `pnpm install` (executed automatically after creation) and `pnpm dev` to mirror a local environment while the Codex agent handles PRs remotely.
+
+### Required secrets for GitHub, Codespaces & Codex
+
+Populate the following secrets everywhere so GitHub Actions, Codespaces, and your Codex workspace all have what they need to build, test, and deploy:
+
+| Secret | Where to add it | Purpose |
+| --- | --- | --- |
+| `CLOUDFLARE_ACCOUNT_ID` | GitHub & Codex | Authenticates Wrangler + API access to your Cloudflare account |
+| `CLOUDFLARE_API_TOKEN` | GitHub & Codex | Token with Workers, D1 (read/write), R2, and Workers AI permissions |
+| `BETTER_AUTH_SECRET` | GitHub & Codex | Next.js auth secret needed for builds/tests |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | GitHub & Codex | Google OAuth integration |
+| `CLOUDFLARE_R2_URL` | GitHub & Codex | Used during Cloudflare deployments |
+| `CF_INTEGRATION_TEST_URL` | GitHub & Codex | Live Cloudflare URL exercised by integration tests |
+| `CF_INTEGRATION_TEST_EXPECTED_TEXT` (optional) | GitHub & Codex | Text snippet that must appear in the response for tests to pass |
+| `OPENAI_API_KEY` | Codex only | Allows Codex to run AI-powered workflows |
+| `GITHUB_APP_ID`, `GITHUB_INSTALLATION_ID`, `GITHUB_PRIVATE_KEY` *or* `GITHUB_PERSONAL_ACCESS_TOKEN` | Codex only | Grants Codex the ability to open/merge PRs |
+
+> Copy [`codex.env.example`](codex.env.example) and fill it with your values before uploading them to the Codex environment. Keep the populated file out of version control.
+
+> ⚠️ There is no single secret store that feeds GitHub Actions, Codespaces, and Codex simultaneously. Add the same values to **GitHub repository secrets** (for CI and deploys), **Codespaces secrets** (for interactive development), and the **Codex environment** so every surface has the credentials it needs.
+
+#### 1. Add GitHub repository secrets (CI + deploys)
+
+1. Open your repository on GitHub and click **Settings → Secrets and variables → Actions**.
+2. Click **New repository secret** for each key in the table above.
+3. Paste the name (e.g., `CLOUDFLARE_API_TOKEN`) and the corresponding value, then press **Add secret**.
+4. Repeat until every required secret exists—GitHub Actions pulls from this list for both the integration tests and the deploy workflow.
+
+#### 2. Add GitHub Codespaces secrets (developer shells)
+
+1. Still in the repository, go to **Settings → Codespaces**.
+2. Under **Codespaces secrets**, choose **New secret**.
+3. Reuse the same names and values from the table so every Codespace—yours and Codex’s—has access when running `pnpm run dev`, migrations, or preview commands.
+4. Optionally set **Access** to this repository only to avoid leaking credentials across other projects.
+
+#### 3. Upload the Codex environment file (automation agent)
+
+1. Download [`codex.env.example`](codex.env.example) locally, duplicate it to `codex.env`, and fill in the values.
+2. In the Codex console, open your workspace → **Environment** → **Upload file**, then provide the populated `codex.env`.
+3. Redeploy the Codex workflow so the new secrets are available for test and deploy tasks.
+
+### GitHub Actions guardrails
+
+- `.github/workflows/deploy.yml` deploys previews on pull requests and promotes changes to production whenever `main` is updated.
+- `.github/workflows/integration-tests.yml` adds a **Cloudflare integration smoke tests** job that runs `pnpm run test:integration`, exercising the live Cloudflare endpoint defined by `CF_INTEGRATION_TEST_URL`.
+- After enabling the workflow, protect the `main` branch in GitHub and mark **Cloudflare integration smoke tests** as a required status check so pull requests cannot merge while integration tests fail.
+
+### Wire up Cloudflare → GitHub → Codex
+
+1. In Cloudflare, link this repository to your Workers project so that a merge to `main` triggers the deploy workflow and publishes a fresh build automatically.
+2. Register the necessary secrets in Cloudflare (via `wrangler secret put`) so production runs continue to succeed when triggered from GitHub Actions.
+3. In the Codex console, create an automation that monitors pull requests, loads the secrets from `codex.env`, and invokes the GitHub Actions workflows (`Deploy Next.js App to Cloudflare` and `Cloudflare Integration Tests`) as part of its runbook.
+4. Encourage collaborators to use Codespaces for manual fixes while Codex handles automated PRs—everyone shares the same containerized toolchain.
+
 ## 🌟 Why Cloudflare + Next.js?
 
 **Cloudflare's Edge Network** provides unparalleled performance and reliability:

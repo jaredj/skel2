@@ -1,0 +1,29 @@
+{
+    "$schema": "https://raw.githubusercontent.com/devcontainers/spec/main/schemas/devContainer.schema.json",
+    "name": "Next.js Cloudflare Template",
+    "image": "mcr.microsoft.com/devcontainers/typescript-node:20",
+    "features": {
+        "ghcr.io/devcontainers/features/pnpm:2": {
+            "version": "8"
+        },
+        "ghcr.io/devcontainers/features/github-cli:1": {}
+    },
+    "postCreateCommand": "pnpm install",
+    "forwardPorts": [8787],
+    "remoteEnv": {
+        "WRANGLER_D1_LOCAL_PATH": ".wrangler"
+    },
+    "customizations": {
+        "vscode": {
+            "settings": {
+                "editor.formatOnSave": true,
+                "files.eol": "\n"
+            },
+            "extensions": [
+                "biomejs.biome",
+                "bradlc.vscode-tailwindcss",
+                "dbaeumer.vscode-eslint"
+            ]
+        }
+    }
+}

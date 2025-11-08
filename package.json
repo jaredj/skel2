@@ -11,7 +11,7 @@
         "dev:remote": "npx @opennextjs/cloudflare build && wrangler dev --remote",
         "build:cf": "npx @opennextjs/cloudflare build",
         "deploy:cf": "npx @opennextjs/cloudflare deploy",
-        "preview:cf": "npx @opennextjs/cloudflare preview",
+        "preview:cf": "pnpm run build:cf && npx @opennextjs/cloudflare preview",
         "deploy": "npx @opennextjs/cloudflare deploy",
         "deploy:preview": "npx @opennextjs/cloudflare deploy --env preview",
         "db:generate": "drizzle-kit generate",
@@ -27,7 +27,8 @@
         "db:reset:local": "wrangler d1 execute next-cf-app --local --command=\"DROP TABLE IF EXISTS todos;\" && pnpm run db:migrate:local",
         "cf:secret": "npx wrangler secret put",
         "cf-typegen": "pnpm exec wrangler types && pnpm exec wrangler types --env-interface CloudflareEnv ./cloudflare-env.d.ts",
-        "lint": "npx biome format --write"
+        "lint": "npx biome format --write",
+        "test:integration": "node ./scripts/integration-smoke.mjs"
     },
     "dependencies": {
         "@hookform/resolvers": "^5.2.1",

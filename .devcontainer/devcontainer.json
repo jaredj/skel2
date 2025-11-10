@@ -3,12 +3,9 @@
     "name": "Next.js Cloudflare Template",
     "image": "mcr.microsoft.com/devcontainers/typescript-node:20",
     "features": {
-        "ghcr.io/devcontainers/features/pnpm:2": {
-            "version": "8"
-        },
         "ghcr.io/devcontainers/features/github-cli:1": {}
     },
-    "postCreateCommand": "pnpm install",
+    "postCreateCommand": "bash -lc 'sudo corepack enable && sudo corepack prepare pnpm@8 --activate && pnpm install'",
     "forwardPorts": [8787],
     "remoteEnv": {
         "WRANGLER_D1_LOCAL_PATH": ".wrangler"
